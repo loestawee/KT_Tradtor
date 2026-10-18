@@ -1,0 +1,20 @@
+{
+  "name": "@kt/android",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KT ตัดต่อ — Android shell (Capacitor) around apps/web",
+  "scripts": {
+    "build:web": "pnpm --filter @openreel/web exec vite build",
+    "sync": "pnpm build:web && cap sync android",
+    "apk": "pnpm sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.9",
+    "@capacitor/core": "^7.6.9",
+    "@capacitor/filesystem": "^7.1.9",
+    "@capacitor/share": "^7.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.9"
+  }
+}

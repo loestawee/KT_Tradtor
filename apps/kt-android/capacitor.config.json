@@ -1,0 +1,6 @@
+{
+  "appId": "com.katay.kttadtor",
+  "appName": "KT ตัดต่อ",
+  "webDir": "../web/dist",
+  "android": { "webContentsDebuggingEnabled": true }
+}

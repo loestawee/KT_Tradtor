@@ -18,6 +18,9 @@
   "dependencies": {
     "@astryxdesign/core": "^0.1.1",
     "@astryxdesign/theme-neutral": "^0.1.1",
+    "@capacitor/core": "^7.6.9",
+    "@capacitor/filesystem": "^7.1.9",
+    "@capacitor/share": "^7.0.4",
     "@gsap/react": "^2.1.2",
     "@huggingface/transformers": "3.8.1",
     "@mediapipe/tasks-vision": "^0.10.35",

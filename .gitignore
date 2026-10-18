@@ -45,6 +45,7 @@ coverage/
 docs/*
 !docs/superpowers/
 !docs/android-port/
+!docs/kt/
 .worktrees/
 # Project-specific
 /public/projects/

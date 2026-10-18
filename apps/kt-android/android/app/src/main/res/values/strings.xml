@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KT ตัดต่อ</string>
+    <string name="title_activity_main">KT ตัดต่อ</string>
+    <string name="package_name">com.katay.kttadtor</string>
+    <string name="custom_url_scheme">com.katay.kttadtor</string>
+</resources>

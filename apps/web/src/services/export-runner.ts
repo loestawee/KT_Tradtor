@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ensureProjectFonts } from "./project-fonts";
+import { deliverExportedFile, isNativeApp } from "./native-delivery";
 import {
   getExportEngine,
   type VideoExportSettings,
@@ -232,6 +233,15 @@ async function createOpfsDownloadWritable(
         await root.removeEntry(tmpName).catch(() => undefined);
         throw new Error("Export produced an empty file");
       }
+      if (isNativeApp()) {
+        try {
+          // OPFS files carry no type, so derive it from the extension.
+          await deliverExportedFile(file, filename, mimeForExt(filename.split(".").pop() || "mp4"));
+        } finally {
+          await root.removeEntry(tmpName).catch(() => undefined);
+        }
+        return;
+      }
       triggerAnchorDownload(file, filename, () => {
         root.removeEntry(tmpName).catch(() => undefined);
       });
@@ -290,7 +300,9 @@ function createBufferedDownloadWritable(
     async close() {
       checkOpen();
       if (!length) throw new Error("Export produced an empty file");
-      triggerAnchorDownload(new Blob([buffer.slice(0, length)], { type: mime }), filename);
+      const output = new Blob([buffer.slice(0, length)], { type: mime });
+      if (isNativeApp()) await deliverExportedFile(output, filename, mime);
+      else triggerAnchorDownload(output, filename);
       finished = true;
       buffer = new Uint8Array(0);
     },
@@ -318,7 +330,8 @@ export async function createDownloadWritable(
   options?: { delivery?: ExportDeliveryMode },
 ): Promise<FileSystemWritableFileStream> {
   const ext = filename.split(".").pop() || "mp4";
-  if (options?.delivery === "download") return createFallbackWritable(filename, mime);
+  // Android WebView exposes showSaveFilePicker but has no real picker behind it.
+  if (options?.delivery === "download" || isNativeApp()) return createFallbackWritable(filename, mime);
 
   if (typeof window.openreel?.fs?.showSaveDialog === "function") {
     const chosen = await window.openreel.fs.showSaveDialog({

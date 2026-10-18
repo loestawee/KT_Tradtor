@@ -108,5 +108,9 @@ describe("configPath", () => {
     expect(configPath("claude-desktop", { platform: "linux", home: "/h" })).toBe(
       "/h/.config/Claude/claude_desktop_config.json",
     );
+    expect(
+      configPath("claude-desktop", { platform: "win32", home: "C:\\Users\\k", appData: "C:\\Users\\k\\AppData\\Roaming" }),
+    ).toBe("C:\\Users\\k\\AppData\\Roaming\\Claude\\claude_desktop_config.json");
+    expect(configPath("codex", { platform: "win32", home: "C:\\Users\\k" })).toBe("C:\\Users\\k\\.codex\\config.toml");
   });
 });

@@ -1,5 +1,5 @@
 import os from "node:os";
-import path from "node:path";
+import { posix, win32 } from "node:path";
 
 // Pure helpers that build/merge MCP client configs for the AI tools KT ตัดต่อ
 // supports. No I/O here, so every format is unit-tested.
@@ -105,6 +105,8 @@ export function configPath(
   target: Exclude<AgentTarget, "claude-code">,
   env: { platform: NodeJS.Platform; home: string; appData?: string; codexHome?: string },
 ): string {
+  // Build paths in the target OS's style, independent of the host running this.
+  const path = env.platform === "win32" ? win32 : posix;
   switch (target) {
     case "codex":
       return path.join(env.codexHome || path.join(env.home, ".codex"), "config.toml");

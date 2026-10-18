@@ -13,7 +13,8 @@ permissions:
 jobs:
   label-issue:
     runs-on: ubuntu-latest
-    if: github.event_name == 'issues'
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video' && (github.event_name == 'issues')
     steps:
       - name: Add needs-claude-review label
         uses: actions/github-script@v7
@@ -64,7 +65,8 @@ jobs:
 
   label-pr:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video' && (github.event_name == 'pull_request')
     steps:
       - name: Check if PR author is not Claude
         id: check-author

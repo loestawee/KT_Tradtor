@@ -6,6 +6,8 @@ on:
 
 jobs:
   copilot-review:
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video'
     runs-on: ubuntu-latest
     permissions:
       contents: read

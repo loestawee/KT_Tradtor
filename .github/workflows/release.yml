@@ -36,6 +36,8 @@ env:
 
 jobs:
   quality:
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video'
     name: Typecheck & Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -52,6 +54,8 @@ jobs:
       - run: pnpm test
 
   release-setup:
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video'
     name: Prepare public release
     needs: quality
     runs-on: ubuntu-latest
@@ -87,6 +91,8 @@ jobs:
               --title "OpenReel Desktop $GITHUB_REF_NAME"
 
   build:
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video'
     name: Build (${{ matrix.os }})
     needs: release-setup
     runs-on: ${{ matrix.os }}
@@ -257,7 +263,8 @@ jobs:
   publish-github-release:
     name: Publish GitHub release
     needs: build
-    if: github.ref_type == 'tag'
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video' && (github.ref_type == 'tag')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -269,9 +276,8 @@ jobs:
   manifest:
     name: Publish landing manifest.json
     needs: [build, release-setup]
-    if: >-
-      (github.ref_type == 'tag' || inputs.publish)
-      && needs.release-setup.outputs.r2_enabled == 'true'
+    # KT fork: upstream-only automation (secrets/bots of Augani/openreel-video).
+    if: github.repository == 'Augani/openreel-video' && ((github.ref_type == 'tag' || inputs.publish) && needs.release-setup.outputs.r2_enabled == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

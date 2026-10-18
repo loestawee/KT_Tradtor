@@ -30,7 +30,7 @@ OpenReel มี **Web + Electron desktop (Win/mac/Linux, alpha) อยู่แ�
 
 | แพลตฟอร์ม | Build | ทดสอบจริง |
 |---|---|---|
-| Web | `pnpm --filter @openreel/web exec vite build` | Playwright: หน้าแรก/editor ไทย–อังกฤษ, จอมือถือ 390px ไม่มี scroll แนวนอน |
+| Web | **https://kt-tadtor.officebk.co** (nginx บน .219, Cloudflare; deploy: `deploy/kt-web/deploy.sh`, rollback: `deploy/kt-web/deploy.sh rollback`) | Playwright: หน้าแรก/editor ไทย–อังกฤษ, จอมือถือ 390px ไม่มี scroll แนวนอน |
 | macOS | `KT-Tadtor-*-arm64.dmg` (ad-hoc sign, ยังไม่ notarize) | เปิดแอปได้, เมนู native สลับ ไทย/อังกฤษ, `KT_SMOKE_TEST=1` ผ่าน |
 | Windows | `KT-Tadtor-*-x64.exe` (NSIS) | GitHub Actions `windows-latest`: เปิดแอป + สลับ TH/EN ผ่าน (`KT_SMOKE_TEST`), WebCodecs ใช้ได้ |
 | Android | `apps/kt-android` → `pnpm apk` | emulator: นำเข้า → แตะเพิ่มลงไทม์ไลน์ → ส่งออกลงแกลเลอรี (ชื่อไฟล์ไทยได้) |

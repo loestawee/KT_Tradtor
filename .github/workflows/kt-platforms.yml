@@ -70,7 +70,13 @@ jobs:
         working-directory: .
       - run: pnpm exec vitest run
       - run: pnpm run fetch:ffmpeg
-      - run: pnpm run build
+      # build:renderer's inline env syntax fails under Windows cmd.exe, so set
+      # OPENREEL_DESKTOP at step level (same approach as release.yml).
+      - name: Build renderer
+        run: pnpm --filter @openreel/web build
+        env:
+          OPENREEL_DESKTOP: "1"
+      - run: pnpm run build:main
       - run: pnpm exec electron-builder ${{ matrix.target }} --publish never
       - name: Smoke test macOS (launch, render, TH/EN switch)
         if: runner.os == 'macOS'

@@ -41,6 +41,8 @@ import {
 } from "./mcp/server";
 import {
   fileWriters,
+  getPathGrants,
+  openWriteGranted,
   showSaveDialog,
   showOpenDialog,
   readTextFile,
@@ -149,7 +151,7 @@ app.whenReady().then(() => {
   handle(CHANNELS.fsShowOpenDialog, openDialogArgsSchema, showOpenDialog);
   handle(CHANNELS.fsReadFile, readFileArgsSchema, readTextFile);
   handle(CHANNELS.fsWriteFile, writeFileArgsSchema, writeTextFile);
-  handle(CHANNELS.fsOpenWrite, z.object({ path: z.string() }), ({ path }) => fileWriters.open(path));
+  handle(CHANNELS.fsOpenWrite, z.object({ path: z.string() }), openWriteGranted);
   handle(
     CHANNELS.fsWriteChunk,
     z.object({
@@ -209,8 +211,11 @@ app.whenReady().then(() => {
   handle(CHANNELS.riggingProbeBackend, z.undefined(), async () =>
     riggingBackendProbeSchema.parse(await probeRiggingBackend()),
   );
-  handle(CHANNELS.riggingRigHumanoidModel, rigHumanoidModelArgsSchema, async (args) =>
-    rigHumanoidModelResultSchema.parse(await rigHumanoidModel(args)),
+  handle(CHANNELS.riggingRigHumanoidModel, rigHumanoidModelArgsSchema, async (args) => {
+    // KT: an explicit output path must have come from a Save dialog.
+    if (args.outputPath?.trim()) getPathGrants().assert(args.outputPath.trim(), "write");
+    return rigHumanoidModelResultSchema.parse(await rigHumanoidModel(args));
+  },
   );
   handle(CHANNELS.keychainGet, z.object({ id: z.string() }), ({ id }) => getKeyStore().get(id));
   handle(CHANNELS.keychainSet, z.object({ id: z.string(), value: z.string() }), ({ id, value }) =>

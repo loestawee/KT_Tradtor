@@ -1,9 +1,10 @@
-import { dialog, shell, BrowserWindow } from "electron";
+import { app, dialog, shell, BrowserWindow } from "electron";
 import { promises as fs } from "node:fs";
 import type { FileHandle } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import os from "node:os";
+import { PathGrants } from "./path-grants";
 
 export class FileWriterRegistry {
   private handles = new Map<string, FileHandle>();
@@ -43,6 +44,18 @@ export class FileWriterRegistry {
 
 export const fileWriters = new FileWriterRegistry();
 
+let pathGrants: PathGrants | null = null;
+/** Lazily created so tests can import this module without an Electron app. */
+export function getPathGrants(): PathGrants {
+  if (!pathGrants) pathGrants = new PathGrants(path.join(app.getPath("userData"), "kt-path-grants.json"));
+  return pathGrants;
+}
+
+/** IPC entry for fsOpenWrite: only granted paths may be opened for writing. */
+export async function openWriteGranted(args: { path: string }): Promise<string> {
+  return fileWriters.open(getPathGrants().assert(args.path, "write"));
+}
+
 export async function showSaveDialog(args: {
   defaultPath: string;
   filters: { name: string; extensions: string[] }[];
@@ -52,7 +65,9 @@ export async function showSaveDialog(args: {
     defaultPath: args.defaultPath,
     filters: args.filters,
   });
-  return res.canceled || !res.filePath ? null : res.filePath;
+  if (res.canceled || !res.filePath) return null;
+  getPathGrants().grant(res.filePath);
+  return res.filePath;
 }
 
 export async function showOpenDialog(args: {
@@ -63,20 +78,22 @@ export async function showOpenDialog(args: {
     filters: args.filters,
     properties: ["openFile"],
   });
-  return res.canceled || res.filePaths.length === 0 ? null : res.filePaths[0];
+  if (res.canceled || res.filePaths.length === 0) return null;
+  getPathGrants().grant(res.filePaths[0]);
+  return res.filePaths[0];
 }
 
 export async function readTextFile(args: { path: string }): Promise<string> {
-  return fs.readFile(args.path, "utf8");
+  return fs.readFile(getPathGrants().assert(args.path, "read"), "utf8");
 }
 
 export async function readFileBytes(args: { path: string }): Promise<ArrayBuffer> {
-  const buf = await fs.readFile(args.path);
+  const buf = await fs.readFile(getPathGrants().assert(args.path, "read"));
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
 }
 
 export async function writeTextFile(args: { path: string; data: string }): Promise<void> {
-  await fs.writeFile(args.path, args.data, "utf8");
+  await fs.writeFile(getPathGrants().assert(args.path, "write"), args.data, "utf8");
 }
 
 export async function revealInFolder(args: { path: string }): Promise<void> {
@@ -85,5 +102,7 @@ export async function revealInFolder(args: { path: string }): Promise<void> {
 
 export async function tempFilePath(args: { ext: string }): Promise<string> {
   const safeExt = args.ext.replace(/[^a-zA-Z0-9]/g, "") || "bin";
-  return path.join(os.tmpdir(), `openreel-mat-${randomUUID()}.${safeExt}`);
+  const tmp = path.join(os.tmpdir(), `openreel-mat-${randomUUID()}.${safeExt}`);
+  getPathGrants().grant(tmp);
+  return tmp;
 }

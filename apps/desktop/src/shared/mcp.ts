@@ -14,9 +14,10 @@ export interface McpEndpoint {
  * app.getPath. Overridable for tests / non-standard setups.
  */
 export function endpointFilePath(): string {
-  const override = process.env.OPENREEL_MCP_ENDPOINT_FILE;
+  const override = process.env.KT_MCP_ENDPOINT_FILE || process.env.OPENREEL_MCP_ENDPOINT_FILE;
   if (override && override.length > 0) return override;
-  return path.join(os.homedir(), ".openreel", "mcp-endpoint.json");
+  // KT: own directory so KT ตัดต่อ and an installed OpenReel never share a token.
+  return path.join(os.homedir(), ".kt-tadtor", "mcp-endpoint.json");
 }
 
 export const MCP_PROTOCOL_PATH = "/mcp";

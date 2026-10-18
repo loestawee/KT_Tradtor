@@ -8,6 +8,8 @@ export default defineConfig({
     // Standalone stdio->HTTP MCP shim spawned by external clients (Claude
     // Desktop / Cursor / Cline). Electron-free so it runs under plain node.
     "mcp-shim/index": "src/mcp-shim/index.ts",
+    // KT: `kt-tadtor` CLI (status/tools/call/setup/mcp) for terminals and AI agents.
+    "cli/index": "src/cli/index.ts",
   },
   format: ["cjs"],
   platform: "node",

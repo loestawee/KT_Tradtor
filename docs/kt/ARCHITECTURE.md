@@ -26,12 +26,24 @@ OpenReel มี **Web + Electron desktop (Win/mac/Linux, alpha) อยู่แ�
 | WebGPU | ❌ (emulator) → fallback Canvas2D อัตโนมัติ | ❌ เหมือนกัน |
 | `crossOriginIsolated` / SharedArrayBuffer | ✅ | ❌ **WebView ไม่รองรับแม้ส่ง COOP/COEP** |
 
+### 0.2 สถานะทุกแพลตฟอร์ม (18/10/2026, branch `kt/android-export`)
+
+| แพลตฟอร์ม | Build | ทดสอบจริง |
+|---|---|---|
+| Web | `pnpm --filter @openreel/web exec vite build` | Playwright: หน้าแรก/editor ไทย–อังกฤษ, จอมือถือ 390px ไม่มี scroll แนวนอน |
+| macOS | `KT-Tadtor-*-arm64.dmg` (ad-hoc sign, ยังไม่ notarize) | เปิดแอปได้, เมนู native สลับ ไทย/อังกฤษ, `KT_SMOKE_TEST=1` ผ่าน |
+| Windows | `KT-Tadtor-*-x64.exe` (NSIS, cross-build จาก mac) | build ได้; smoke test รันบน GitHub Actions `windows-latest` (`.github/workflows/kt-platforms.yml`) |
+| Android | `apps/kt-android` → `pnpm apk` | emulator: นำเข้า → แตะเพิ่มลงไทม์ไลน์ → ส่งออกลงแกลเลอรี (ชื่อไฟล์ไทยได้) |
+
+- **ภาษา:** `apps/web/src/i18n` (key = ข้อความอังกฤษ, คำแปลใน `th.ts`), ปุ่ม TH/EN บนหน้าแรก/แถบบน/title bar desktop, เมนู native ของ desktop เปลี่ยนตาม
+- **AI/CLI:** ดู [AI-CONTROL.md](./AI-CONTROL.md)
+
 **สิ่งที่ต้องแก้สำหรับ Android (backlog)**
 1. ~~**บันทึกไฟล์ export**~~ ✅ ทำแล้ว (branch `kt/android-export`): OPFS → cache ผ่าน Filesystem → `KtMediaPlugin` (MediaStore) ลง `Movies/KT Tadtor/`
 2. **ไม่มี SharedArrayBuffer ใน WebView** — ไล่หาฟีเจอร์ที่ใช้ `@ffmpeg/core-mt` แล้ว fallback เป็น `@ffmpeg/core` (single-thread) หรือ native plugin; export หลักผ่าน WebCodecs ไม่กระทบ
-3. **Player preview บนมือถือสูงแค่ ~30px** — layout บีบจนแทบมองไม่เห็นภาพ
-4. **ปุ่ม "Add to timeline" โผล่เฉพาะ hover / double-click** — นิ้วกดไม่ได้ ต้องมีปุ่ม/แตะค้างสำหรับ touch
-5. **Export dialog ล้นจอแนวนอน** (ปุ่ม export โดนตัดขอบ)
+3. ~~**Player preview บนมือถือสูงแค่ ~30px**~~ ✅ ซ่อนหัว Player, tools แถวเดียว, stage 58%
+4. ~~**ปุ่ม "Add to timeline" โผล่เฉพาะ hover**~~ ✅ จอสัมผัส: แตะสื่อแล้วปุ่ม + / ลบ ขึ้น
+5. ~~**Export dialog ล้นจอแนวนอน**~~ ✅
 6. Import ขอ permission กล้องก่อนเปิด file picker (ตัด `capture`/accept ให้ตรง)
 7. ทดสอบ WebGPU บนมือถือจริง (emulator ไม่มี) และ performance คลิป 1080p/4K
 

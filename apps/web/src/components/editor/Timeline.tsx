@@ -1,3 +1,4 @@
+import { translate } from "../../i18n";
 import React, {
   useRef,
   useCallback,
@@ -1033,7 +1034,7 @@ export const Timeline: React.FC = () => {
           menuWidth={192}
           hasChevron
           button={{
-            label: "Add track",
+            label: translate("Add track"),
             size: "sm",
             variant: "ghost",
             icon: <Plus size={16} aria-hidden />,
@@ -1512,7 +1513,7 @@ export const Timeline: React.FC = () => {
                   addTrack("video", undefined, { mode: "standard" })
                 }
                 className="mx-3 my-1 h-7 flex items-center justify-center gap-1.5 rounded-[7px] border border-dashed border-border-strong text-fg-muted hover:text-fg-2 hover:border-fg-3 transition-colors"
-                aria-label="Add track"
+                aria-label={translate("Add track")}
               >
                 <Plus size={16} aria-hidden />
               </button>

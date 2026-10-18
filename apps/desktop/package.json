@@ -5,14 +5,15 @@
   "type": "commonjs",
   "main": "dist/main/index.js",
   "bin": {
+    "kt-tadtor": "dist/cli/index.js",
     "openreel-mcp": "dist/mcp-shim/index.js"
   },
-  "homepage": "https://openreel.video",
+  "homepage": "https://github.com/loestawee/KT_Tradtor",
   "author": {
-    "name": "OpenReel",
-    "email": "support@openreel.video"
+    "name": "Katay",
+    "email": "katayslayer@gmail.com"
   },
-  "description": "OpenReel — open-source professional video editor",
+  "description": "KT ตัดต่อ — video editor for web, Windows, macOS and Android (based on OpenReel)",
   "scripts": {
     "build:main": "node scripts/prepare-aurora-native.mjs && tsup",
     "build:renderer": "OPENREEL_DESKTOP=1 pnpm --filter @openreel/web build",
@@ -39,5 +40,6 @@
     "tsup": "^8.0.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
-  }
+  },
+  "productName": "KT Tadtor"
 }

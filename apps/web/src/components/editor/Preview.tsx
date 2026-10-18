@@ -1,3 +1,4 @@
+import { translate } from "../../i18n";
 import React, {
   useRef,
   useEffect,
@@ -7659,10 +7660,10 @@ export const Preview: React.FC = () => {
     >
       {/* ── Panel bar header (mockup: 'Player') ───────────────── */}
       {!isMaximized && !isFullscreen && (
-        <div className="flex items-center px-3.5 py-2 border-b border-border bg-bg-1 gap-2.5 min-h-[38px] shrink-0">
-          <Text type="label" color="primary" weight="semibold" className="text-[13px] tracking-tight text-fg m-0">Player</Text>
+        <div data-preview-header className="flex items-center px-3.5 py-2 border-b border-border bg-bg-1 gap-2.5 min-h-[38px] shrink-0">
+          <Text type="label" color="primary" weight="semibold" className="text-[13px] tracking-tight text-fg m-0">{translate("Player")}</Text>
           <div className="ml-auto flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent" title="Live preview" />
+            <span className="w-1.5 h-1.5 rounded-full bg-accent" title={translate("Live preview")} />
           </div>
         </div>
       )}
@@ -7685,6 +7686,7 @@ export const Preview: React.FC = () => {
       {/* Video Area */}
       <div
         ref={videoAreaRef}
+        data-preview-video-area
         className={`flex-1 min-h-0 min-w-0 relative flex items-center justify-center bg-bg-1 transition-all duration-300 ${
           isMaximized || isFullscreen ? "p-0" : "p-[18px]"
         } ${zoomLevel > 1 ? "overflow-auto" : ""}`}

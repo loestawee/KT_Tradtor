@@ -19,7 +19,10 @@
 .editor-compact [data-preview-timecode] { min-width: 0; overflow: hidden; }
 .editor-compact [data-preview-timecode] input { width: 90px; }
 .editor-compact [data-preview-playback] { gap: 4px; margin: 0; }
-.editor-compact [data-preview-tools] { grid-column: 1 / -1; min-width: 0; flex-wrap: wrap; gap: 4px; }
+.editor-compact [data-preview-tools] { grid-column: 1 / -1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: 4px; scrollbar-width: none; }
+/* KT: phones need the space for the picture, not the panel title. */
+.editor-compact [data-preview-header] { display: none; }
+.editor-compact [data-preview-video-area] { padding: 4px; }
 .editor-compact [data-preview-tools] > * { flex-shrink: 0; }
 .editor-compact [aria-label="Preview range controls"] button { min-width: 24px; }
 .editor-compact [data-tour="timeline"] > .h-12 { gap: 8px; padding: 0 4px; overflow-x: auto; overflow-y: hidden; }

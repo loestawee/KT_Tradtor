@@ -10,14 +10,66 @@ export interface MenuNode {
   submenu?: MenuNode[];
 }
 
-export function buildMenuTemplate(platform: string): MenuNode[] {
+export type MenuLocale = "en" | "th";
+
+// KT: Thai labels for the native menu bar, keyed by the English label.
+const MENU_TH: Record<string, string> = {
+  "KT Tadtor": "KT ตัดต่อ",
+  "About KT Tadtor": "เกี่ยวกับ KT ตัดต่อ",
+  "Settings…": "การตั้งค่า…",
+  Quit: "ออก",
+  File: "ไฟล์",
+  "New Project": "โปรเจกต์ใหม่",
+  "Open…": "เปิด…",
+  "Export…": "ส่งออก…",
+  Edit: "แก้ไข",
+  Undo: "เลิกทำ",
+  Redo: "ทำซ้ำ",
+  Cut: "ตัด",
+  Copy: "คัดลอก",
+  Paste: "วาง",
+  View: "มุมมอง",
+  Reload: "โหลดใหม่",
+  "Force Reload": "บังคับโหลดใหม่",
+  "Toggle Developer Tools": "เครื่องมือนักพัฒนา",
+  "Toggle Full Screen": "เต็มจอ",
+  Window: "หน้าต่าง",
+  Minimize: "ย่อหน้าต่าง",
+  Close: "ปิด",
+  Help: "ช่วยเหลือ",
+  "KT Tadtor Help": "วิธีใช้ KT ตัดต่อ",
+  "Open Source Licenses": "สัญญาอนุญาตโอเพนซอร์ส",
+};
+
+/** Picks the menu language from the OS preferred languages (Thai first wins). */
+export function menuLocaleFrom(languages: readonly string[]): MenuLocale {
+  const first = languages.find((l) => /^(th|en)\b/i.test(l));
+  return first?.toLowerCase().startsWith("th") ? "th" : "en";
+}
+
+function localize(nodes: MenuNode[], locale: MenuLocale): MenuNode[] {
+  if (locale === "en") return nodes;
+  return nodes.map((node) => ({
+    ...node,
+    // Items without an actionId report their English label back to onAction.
+    actionId: node.actionId ?? (node.role ? undefined : node.label),
+    label: MENU_TH[node.label] ?? node.label,
+    submenu: node.submenu && localize(node.submenu, locale),
+  }));
+}
+
+export function buildMenuTemplate(platform: string, locale: MenuLocale = "en"): MenuNode[] {
+  return localize(buildEnglishTemplate(platform), locale);
+}
+
+function buildEnglishTemplate(platform: string): MenuNode[] {
   const isMac = platform === "darwin";
   const template: MenuNode[] = [];
   if (isMac) {
     template.push({
-      label: "OpenReel",
+      label: "KT Tadtor",
       submenu: [
-        { label: "About OpenReel", role: "about" },
+        { label: "About KT Tadtor", role: "about" },
         { label: "Settings…", accelerator: "Cmd+,", actionId: "settings" },
         { label: "Quit", role: "quit", accelerator: "Cmd+Q" },
       ],
@@ -67,14 +119,18 @@ export function buildMenuTemplate(platform: string): MenuNode[] {
   template.push({
     label: "Help",
     submenu: [
-      { label: "OpenReel Help" },
+      { label: "KT Tadtor Help" },
       { label: "Open Source Licenses", actionId: "openLicenses" },
     ],
   });
   return template;
 }
 
-export function installApplicationMenu(platform: string, onAction: (id: string) => void): void {
+export function installApplicationMenu(
+  platform: string,
+  onAction: (id: string) => void,
+  locale: MenuLocale = "en",
+): void {
   const toElectron = (node: MenuNode): MenuItemConstructorOptions => ({
     label: node.label,
     accelerator: node.accelerator,
@@ -88,7 +144,7 @@ export function installApplicationMenu(platform: string, onAction: (id: string) 
         ? undefined
         : () => onAction(node.label),
   });
-  const template = buildMenuTemplate(platform).map(toElectron);
+  const template = buildMenuTemplate(platform, locale).map(toElectron);
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 

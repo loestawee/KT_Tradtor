@@ -24,7 +24,10 @@ import {
 import { getKeyStore } from "./ipc/keychain";
 import { cloudFetch } from "./ipc/cloud";
 import { applyWindowControl, windowIsMaximized } from "./window-controls";
-import { installApplicationMenu, sendMenuAction } from "./app-menu";
+import { runSmokeTestIfRequested } from "./smoke-test";
+import { resolveLauncher } from "../cli/agent-config";
+import { setupAgent } from "../cli/setup";
+import { installApplicationMenu, menuLocaleFrom, sendMenuAction, type MenuLocale } from "./app-menu";
 import { attachUnsavedGuard, markQuitting } from "./lifecycle";
 import { initAutoUpdater } from "./updater";
 import { initCrashReporter, reportError } from "./crash-reporter";
@@ -134,6 +137,7 @@ function createWindow(): void {
   });
   attachUnsavedGuard(win);
   installNavigationGuard(win, APP_INDEX);
+  runSmokeTestIfRequested(win);
   win.loadURL(APP_INDEX);
 }
 
@@ -258,6 +262,22 @@ app.whenReady().then(() => {
   handle(CHANNELS.mcpGetStatus, z.undefined(), () => getMcpStatus());
   handle(CHANNELS.mcpRotateToken, z.undefined(), () => rotateMcpToken());
   handle(CHANNELS.mcpTestConnection, z.undefined(), () => testMcpConnection());
+  handle(
+    CHANNELS.mcpSetupAgent,
+    z.object({ target: z.enum(["claude-code", "codex", "claude-desktop", "cursor"]), printOnly: z.boolean().optional() }),
+    ({ target, printOnly }) =>
+      setupAgent(
+        target,
+        resolveLauncher({
+          execPath: process.execPath,
+          cliFile: app.isPackaged
+            ? path.join(process.resourcesPath, "app.asar.unpacked", "dist", "cli", "index.js")
+            : path.join(__dirname, "../cli/index.js"),
+          isElectron: true,
+        }),
+        { printOnly },
+      ),
+  );
   createWindow();
   initAutoUpdater();
   startMcpServer().catch((error) =>
@@ -267,7 +287,7 @@ app.whenReady().then(() => {
       message: error instanceof Error ? error.message : String(error),
     }),
   );
-  installApplicationMenu(process.platform, (id) => {
+  const onMenuAction = (id: string) => {
     if (id === "openLicenses") {
       const dir = app.isPackaged
         ? path.join(process.resourcesPath, "LICENSES")
@@ -276,6 +296,14 @@ app.whenReady().then(() => {
       return;
     }
     sendMenuAction(BrowserWindow.getFocusedWindow(), id);
+  };
+  let menuLocale: MenuLocale = menuLocaleFrom(app.getPreferredSystemLanguages());
+  installApplicationMenu(process.platform, onMenuAction, menuLocale);
+  ipcMain.on(CHANNELS.setUiLocale, (_e, raw) => {
+    const next: MenuLocale = raw === "th" ? "th" : "en";
+    if (next === menuLocale) return;
+    menuLocale = next;
+    installApplicationMenu(process.platform, onMenuAction, menuLocale);
   });
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

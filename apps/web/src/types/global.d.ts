@@ -177,6 +177,7 @@ declare global {
       publicOrigin: string;
       probeHardware(): Promise<OpenReelHardwareInfo>;
       onMenuAction(cb: (id: string) => void): () => void;
+      setUiLocale?(locale: "en" | "th"): void;
       fs: {
         showSaveDialog(opts: {
           defaultPath: string;
@@ -273,6 +274,10 @@ declare global {
         getStatus(): Promise<OpenReelMcpStatus>;
         rotateToken(): Promise<OpenReelMcpStatus>;
         testConnection(): Promise<{ ok: boolean; message?: string; toolCount?: number }>;
+        setupAgent?(
+          target: "claude-code" | "codex" | "claude-desktop" | "cursor",
+          printOnly?: boolean,
+        ): Promise<{ ok: boolean; message: string; manual?: string }>;
       };
       media: {
         generateProxy(args: { srcPath: string; preset: "low" | "medium" | "high" }): Promise<{ outPath: string }>;

@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld("openreel", {
   platform: "desktop",
   publicOrigin: "https://app.openreel.video",
   probeHardware: () => ipcRenderer.invoke(CHANNELS.probeHardware, undefined),
+  /** KT: keeps the native menu bar in the same language as the UI. */
+  setUiLocale: (locale: "en" | "th") => ipcRenderer.send(CHANNELS.setUiLocale, locale),
   onMenuAction: (cb: (id: string) => void) => {
     const handler = (_event: unknown, id: string) => cb(id);
     ipcRenderer.on("openreel:menu:action", handler);
@@ -149,6 +151,8 @@ contextBridge.exposeInMainWorld("openreel", {
     getStatus: () => ipcRenderer.invoke(CHANNELS.mcpGetStatus, undefined),
     rotateToken: () => ipcRenderer.invoke(CHANNELS.mcpRotateToken, undefined),
     testConnection: () => ipcRenderer.invoke(CHANNELS.mcpTestConnection, undefined),
+    setupAgent: (target: "claude-code" | "codex" | "claude-desktop" | "cursor", printOnly?: boolean) =>
+      ipcRenderer.invoke(CHANNELS.mcpSetupAgent, { target, printOnly }),
   },
   lifecycle: {
     // The main process asks (on window close / quit) whether there are unsaved

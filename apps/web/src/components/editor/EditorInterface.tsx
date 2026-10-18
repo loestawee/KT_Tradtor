@@ -1,3 +1,4 @@
+import { useT } from "../../i18n";
 import "./ai-workspace.css";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { ToolcraftText as Text, ToolcraftButton as Button } from "@openreel/ui";
@@ -84,6 +85,7 @@ const useAutoSave = () => {
  * properties on the root grid so panels can pick them up.
  */
 export const EditorInterface: React.FC = () => {
+  const t = useT();
   const compact = useCompactEditor();
   const [compactPanel, setCompactPanel] = useState<"timeline" | "media" | "inspector" | "chat">("timeline");
   const [hasOpenedChat, setHasOpenedChat] = useState(false);
@@ -317,14 +319,14 @@ export const EditorInterface: React.FC = () => {
         <div className="text-center">
           {initError ? (
             <div role="alert" className="max-w-md space-y-4 px-6">
-              <Text type="body" weight="bold">The editor couldn't start</Text>
+              <Text type="body" weight="bold">{t("The editor couldn't start")}</Text>
               <Text type="supporting" className="text-status-error text-xs">{initError}</Text>
-              <Button label="Try again" onClick={retry} variant="primary" />
+              <Button label={t("Try again")} onClick={retry} variant="primary" />
             </div>
           ) : (
             <div role="status">
               <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <Text type="supporting" color="primary" className="text-fg-2 text-sm">Initializing editor…</Text>
+              <Text type="supporting" color="primary" className="text-fg-2 text-sm">{t("Initializing editor…")}</Text>
               <Text type="supporting" color="secondary" className="text-fg-muted text-xs mt-2">{initStatus}</Text>
             </div>
           )}
@@ -341,7 +343,7 @@ export const EditorInterface: React.FC = () => {
     ? COMPACT_TIMELINE_VH
     : timelineVh;
   const gridStyle: React.CSSProperties = compact
-    ? { gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "minmax(220px, 48%) minmax(0, 1fr)", gridTemplateAreas: `'stage' '${compactPanel}'` }
+    ? { gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "minmax(240px, 58%) minmax(0, 1fr)", gridTemplateAreas: `'stage' '${compactPanel}'` }
     : chatVisible
     ? {
         gridTemplateColumns: `${mediaWidth}px ${RESIZE_HANDLE}px minmax(0, 1fr) ${RESIZE_HANDLE}px ${chatWidth}px`,
@@ -525,13 +527,13 @@ export const EditorInterface: React.FC = () => {
       </div>
 
       {compact && (
-        <nav aria-label="Editor workspace" className="editor-workspace-tabs">
+        <nav aria-label={t("Editor workspace")} className="editor-workspace-tabs">
           {([
             ["timeline", "Timeline"], ["media", "Media"], ["inspector", "Edit"], ["chat", "AI"],
           ] as const).map(([panel, label]) => (
             <button key={panel} type="button" aria-controls={`editor-panel-${panel}`} aria-pressed={compactPanel === panel}
               onClick={() => openCompactPanel(panel)} className={compactPanel === panel ? "text-accent bg-accent/10" : "text-fg-muted"}>
-              {label}
+              {t(label)}
             </button>
           ))}
         </nav>

@@ -33,7 +33,7 @@ function generateToken(): string {
 
 function serverInfo(): ServerInfo {
   return {
-    name: "openreel",
+    name: "kt-tadtor",
     version: app.getVersion(),
   };
 }

@@ -1,4 +1,5 @@
 export const CHANNELS = {
+  setUiLocale: "kt:setUiLocale",
   probeHardware: "openreel:probeHardware",
   fsShowSaveDialog: "openreel:fs:showSaveDialog",
   fsShowOpenDialog: "openreel:fs:showOpenDialog",
@@ -49,4 +50,5 @@ export const CHANNELS = {
   mcpGetStatus: "openreel:mcp:getStatus",
   mcpRotateToken: "openreel:mcp:rotateToken",
   mcpTestConnection: "openreel:mcp:testConnection",
+  mcpSetupAgent: "kt:mcp:setupAgent",
 } as const;

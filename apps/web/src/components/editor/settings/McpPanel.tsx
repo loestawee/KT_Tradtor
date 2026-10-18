@@ -1,3 +1,4 @@
+import { useT } from "../../../i18n";
 import React, { useState, useEffect, useCallback } from "react";
 import { Plug, Eye, EyeOff, Copy, RefreshCw, Wifi } from "@/icons/lucide-compat";
 import { ToolcraftSwitchControl } from "@openreel/ui";
@@ -15,9 +16,9 @@ function clientConfigSnippet(shimPath: string): string {
   return JSON.stringify(
     {
       mcpServers: {
-        openreel: {
+        "kt-tadtor": {
           command: "node",
-          args: [shimPath || "<path to openreel-mcp shim>"],
+          args: [shimPath || "<path to kt-tadtor MCP shim>"],
         },
       },
     },
@@ -25,6 +26,15 @@ function clientConfigSnippet(shimPath: string): string {
     2,
   );
 }
+
+type AgentTarget = "claude-code" | "codex" | "claude-desktop" | "cursor";
+
+const AI_AGENTS: { id: AgentTarget; label: string }[] = [
+  { id: "claude-code", label: "Claude Code" },
+  { id: "codex", label: "Codex CLI (ChatGPT)" },
+  { id: "claude-desktop", label: "Claude Desktop" },
+  { id: "cursor", label: "Cursor" },
+];
 
 async function copy(value: string, label: string): Promise<void> {
   try {
@@ -43,6 +53,21 @@ export const McpPanel: React.FC = () => {
   const [toolCount, setToolCount] = useState<number | null>(null);
   const [revealToken, setRevealToken] = useState(false);
   const [testing, setTesting] = useState(false);
+  const t = useT();
+  const [agentResult, setAgentResult] = useState<{ ok: boolean; message: string; manual?: string } | null>(null);
+
+  const handleSetupAgent = useCallback(async (target: AgentTarget) => {
+    const setup = window.openreel?.mcp?.setupAgent;
+    if (!setup) return;
+    try {
+      const result = await setup(target);
+      setAgentResult(result);
+      if (result.ok) toast.success(t("Connected"), result.message);
+      else toast.error(t("Could not connect automatically"), result.message);
+    } catch (err) {
+      setAgentResult({ ok: false, message: err instanceof Error ? err.message : String(err) });
+    }
+  }, [t]);
 
   const refresh = useCallback(async () => {
     const bridge = window.openreel?.mcp;
@@ -108,8 +133,8 @@ export const McpPanel: React.FC = () => {
           Desktop only
         </Text>
         <Text type="supporting" color="secondary" className="mt-1 max-w-sm text-xs">
-          The MCP server runs inside the OpenReel desktop app, letting external AI
-          clients (Claude Desktop, Cursor, Cline) edit your project. Open OpenReel
+          The MCP server runs inside the KT Tadtor desktop app, letting external AI
+          clients (Claude Desktop, Cursor, Cline) edit your project. Open KT Tadtor
           on desktop to configure it.
         </Text>
       </div>
@@ -261,14 +286,54 @@ export const McpPanel: React.FC = () => {
 
       <div className="h-px bg-border" />
 
+      <div className="space-y-3">
+        <div>
+          <Text type="body" color="primary" className="text-sm font-medium">
+            {t("Connect AI tools")}
+          </Text>
+          <Text type="supporting" color="secondary" className="mt-0.5 text-xs">
+            {t("One click registers KT Tadtor with the AI tool so it can edit your open project. Keep this app running while the AI works.")}
+          </Text>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {AI_AGENTS.map((agent) => (
+            <Button
+              key={agent.id}
+              label={agent.label}
+              variant="secondary"
+              size="sm"
+              icon={<Plug size={14} aria-hidden />}
+              onClick={() => void handleSetupAgent(agent.id)}
+            />
+          ))}
+        </div>
+        {agentResult && (
+          <div
+            role="status"
+            className={`rounded px-3 py-2 text-[11px] ${agentResult.ok ? "bg-primary/10 text-text-primary" : "bg-status-warning/10 text-status-warning"}`}
+          >
+            {agentResult.message}
+            {agentResult.manual && (
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[10px] text-text-secondary">
+                {agentResult.manual}
+              </pre>
+            )}
+          </div>
+        )}
+        <Text type="supporting" color="secondary" className="text-[11px]">
+          {t("ChatGPT (web/desktop) only accepts remote HTTPS MCP servers, so use Codex CLI for local control.")}
+        </Text>
+      </div>
+
+      <div className="h-px bg-border" />
+
       <div className="space-y-4">
         <div>
           <Text type="body" color="primary" className="text-sm font-medium">
-            Client Setup
+            {t("Client Setup")}
           </Text>
           <Text type="supporting" color="secondary" className="mt-0.5 text-xs">
-            Add this to your MCP client config (Claude Desktop, Cursor, Cline).
-            The shim connects to the running app automatically.
+            {t("Add this to your MCP client config (Claude Desktop, Cursor, Cline). The shim connects to the running app automatically.")}
           </Text>
         </div>
         <div className="relative">

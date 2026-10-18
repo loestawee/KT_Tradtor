@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 import type { JSX } from "react";
 import { useEffect } from "react";
 import { DesktopTitleBar } from "./shell/DesktopTitleBar";
@@ -27,6 +28,7 @@ function detectPlatform(): string {
 }
 
 export function DesktopApp(): JSX.Element {
+  const t = useT();
   const platform = detectPlatform();
   const hasProject = useProjectStore((state) => state.hasOpenProject);
   const agentChatVisible = useUIStore(
@@ -95,7 +97,7 @@ export function DesktopApp(): JSX.Element {
       <DesktopTitleBar platform={platform}>
         {hasProject ? (
           <Button
-            label="AI Editor"
+            label={t("AI Editor")}
             variant={agentChatVisible ? "primary" : "secondary"}
             size="sm"
             icon={<Sparkles size={15} aria-hidden />}
@@ -106,7 +108,7 @@ export function DesktopApp(): JSX.Element {
         ) : null}
         {hasProject ? <DesktopExportButton /> : null}
         <Button
-          label="Settings"
+          label={t("Settings")}
           variant="secondary"
           size="sm"
           icon={<Settings size={15} aria-hidden />}

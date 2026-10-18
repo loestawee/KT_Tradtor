@@ -18,6 +18,8 @@ import { SOCIAL_MEDIA_PRESETS, type SocialMediaCategory } from "@openreel/core";
 import { useRouter } from "../../hooks/use-router";
 import { useEditorPreload } from "../../hooks/useEditorPreload";
 import { useAnalytics, AnalyticsEvents } from "../../hooks/useAnalytics";
+import { useT } from "../../i18n";
+import { LanguageSwitcher } from "../../i18n/LanguageSwitcher";
 
 const TemplateGallery = lazy(() =>
   import("./TemplateGallery").then((module) => ({ default: module.TemplateGallery })),
@@ -26,7 +28,10 @@ const RecentProjects = lazy(() =>
   import("./RecentProjects").then((module) => ({ default: module.RecentProjects })),
 );
 
-const LoadingView = () => <div role="status" className="p-6 text-center text-text-secondary">Loading…</div>;
+const LoadingView = () => {
+  const t = useT();
+  return <div role="status" className="p-6 text-center text-text-secondary">{t("Loading…")}</div>;
+};
 
 interface FormatOption {
   id: string;
@@ -154,13 +159,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
 
   const [viewMode, setViewMode] = useState<ViewMode>(initialTab ?? "home");
   const [hoveredFormat, setHoveredFormat] = useState<string | null>(null);
+  const t = useT();
 
   useEditorPreload(true);
 
   const handleCreateProject = useCallback(
     (option: FormatOption) => {
       const preset = SOCIAL_MEDIA_PRESETS[option.preset];
-      createNewProject(`New ${option.label} Video`, {
+      createNewProject(t("New {format} Video", { format: t(option.label) }), {
         width: preset.width,
         height: preset.height,
         frameRate: preset.frameRate,
@@ -174,7 +180,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
       });
       navigate("editor");
     },
-    [createNewProject, navigate, track],
+    [createNewProject, navigate, track, t],
   );
 
   const handleTemplateApplied = useCallback(() => {
@@ -210,13 +216,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b border-border">
           <Button
-            label="Back"
+            label={t("Back")}
             variant="ghost"
             size="sm"
             icon={<ArrowRight className="rotate-180" size={16} aria-hidden />}
             onClick={() => setViewMode("home")}
           />
-          <Text type="label" color="primary" weight="medium" className="text-sm text-text-primary">Templates</Text>
+          <Text type="label" color="primary" weight="medium" className="text-sm text-text-primary">{t("Templates")}</Text>
           <div className="w-16" />
         </header>
         <div className="flex-1 overflow-y-auto p-6">
@@ -233,14 +239,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b border-border">
           <Button
-            label="Back"
+            label={t("Back")}
             variant="ghost"
             size="sm"
             icon={<ArrowRight className="rotate-180" size={16} aria-hidden />}
             onClick={() => setViewMode("home")}
           />
           <Text type="label" color="primary" weight="medium" className="text-sm text-text-primary">
-            Recent Projects
+            {t("Recent Projects")}
           </Text>
           <div className="w-16" />
         </header>
@@ -258,7 +264,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(34,197,94,0.05),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(34,197,94,0.03),transparent_50%)]" />
 
-      <div className="relative h-full flex flex-col items-center justify-center px-6">
+      <LanguageSwitcher className="absolute top-4 right-4 z-10" />
+      <div className="relative h-full flex flex-col items-center justify-start sm:justify-center px-4 sm:px-6 pt-16 pb-8 sm:py-0 overflow-y-auto">
         <div className="w-full max-w-3xl">
           <div className="flex flex-col items-center text-center mb-12">
             <div className="flex items-center gap-3 mb-6">
@@ -266,22 +273,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
                 <OpenReelLogo className="w-full h-full" />
               </div>
               <Text type="body" color="primary" weight="semibold" className="text-xl text-text-primary tracking-tight">
-                Open Reel Video
+                {t("KT Tadtor")}
               </Text>
             </div>
 
             <Text type="body" color="primary" weight="bold" className="text-4xl sm:text-5xl text-text-primary tracking-tight mb-3">
-              From idea to export.
+              {t("From idea to export.")}
             </Text>
             <Text type="supporting" color="secondary" className="text-xl text-text-secondary mb-8">
-              In your browser.
+              {t("On web, Windows, macOS and Android.")}
             </Text>
             <Text type="supporting" color="secondary" className="text-base text-text-muted max-w-md">
-              Pick a format and start creating. You can change this anytime.
+              {t("Pick a format and start creating. You can change this anytime.")}
             </Text>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-10">
             {FORMAT_OPTIONS.map((option) => {
               const Icon = option.icon;
               const isHovered = hoveredFormat === option.id;
@@ -289,7 +296,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
               return (
                 <ClickableCard
                   key={option.id}
-                  label={`Create ${option.label} project`}
+                  label={t("Create {format} project", { format: t(option.label) })}
                   onClick={() => handleCreateProject(option)}
                   onMouseEnter={() => setHoveredFormat(option.id)}
                   onMouseLeave={() => setHoveredFormat(null)}
@@ -325,10 +332,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
                     </div>
 
                     <Text type="body" color="primary" weight="semibold" className="text-lg text-text-primary mb-1">
-                      {option.label}
+                      {t(option.label)}
                     </Text>
                     <Text type="supporting" color="secondary" className="text-sm text-text-muted mb-3">
-                      {option.description}
+                      {t(option.description)}
                     </Text>
                     <span className="text-xs font-mono text-text-muted/70 bg-background-tertiary px-2 py-1 rounded">
                       {option.dimensions}
@@ -343,7 +350,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
                     transition-all duration-200
                   `}
                   >
-                    Start creating
+                    {t("Start creating")}
                     <ArrowRight size={14} />
                   </div>
                 </ClickableCard>
@@ -353,21 +360,21 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
 
           <div className="flex items-center justify-center gap-3">
             <Button
-              label="Browse templates"
+              label={t("Browse templates")}
               variant="secondary"
               icon={<Layers size={16} aria-hidden />}
               onClick={() => setViewMode("templates")}
               className="rounded-xl"
             />
             <Button
-              label="Recent projects"
+              label={t("Recent projects")}
               variant="secondary"
               icon={<Clock size={16} aria-hidden />}
               onClick={() => setViewMode("recent")}
               className="rounded-xl"
             />
             <Button
-              label="Open editor"
+              label={t("Open editor")}
               variant="secondary"
               icon={<FolderOpen size={16} aria-hidden />}
               onClick={() => navigate("editor")}
@@ -376,23 +383,23 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ initialTab }) => {
           </div>
         </div>
 
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4">
+        <div className="mt-8 flex shrink-0 items-center justify-center gap-4 sm:absolute sm:bottom-6 sm:left-1/2 sm:mt-0 sm:-translate-x-1/2">
           <div className="flex items-center gap-2">
             <ToolcraftSwitchControl
-              label="Skip on startup"
+              label={t("Skip on startup")}
               checked={skipWelcomeScreen}
               onCheckedChange={setSkipWelcomeScreen}
             />
           </div>
 
-          <span className="text-text-muted/30">·</span>
+          <span className="hidden sm:inline text-text-muted/30">·</span>
 
-          <Text type="supporting" color="secondary" className="text-xs text-text-muted/60">
-            Press{" "}
+          <Text type="supporting" color="secondary" className="hidden sm:block text-xs text-text-muted/60">
+            {t("Press")}{" "}
             <kbd className="px-1.5 py-0.5 bg-background-tertiary border border-border rounded text-text-muted font-mono text-[10px]">
               Esc
             </kbd>{" "}
-            to skip
+            {t("to skip")}
           </Text>
         </div>
       </div>

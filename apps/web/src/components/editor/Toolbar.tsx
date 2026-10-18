@@ -1,3 +1,5 @@
+import { useT } from "../../i18n";
+import { LanguageSwitcher } from "../../i18n/LanguageSwitcher";
 import React, { useCallback, useState, useEffect, useMemo } from "react";
 import {
   X,
@@ -50,6 +52,7 @@ type ExportType =
   | "project";
 
 export const Toolbar: React.FC = () => {
+  const t = useT();
   const project = useProjectStore((state) => state.project);
   const loopStart = useTimelineStore((state) => state.loopStart);
   const loopEnd = useTimelineStore((state) => state.loopEnd);
@@ -270,8 +273,8 @@ export const Toolbar: React.FC = () => {
     async (screenBlob: Blob, webcamBlob?: Blob) => {
       if (!screenBlob || screenBlob.size === 0) {
         toast.error(
-          "Recording failed",
-          "No video data was captured. Please try again.",
+          t("Recording failed"),
+          t("No video data was captured. Please try again."),
         );
         return;
       }
@@ -317,10 +320,10 @@ export const Toolbar: React.FC = () => {
             : "Screen recording added to assets.",
         );
       } else if (errors.length > 0) {
-        toast.error("Import failed", errors.join(". "));
+        toast.error(t("Import failed"), errors.join(". "));
       }
     },
-    [importMedia],
+    [importMedia, t],
   );
 
   const projectRes = `${project.settings.width}×${project.settings.height}`;
@@ -336,9 +339,9 @@ export const Toolbar: React.FC = () => {
     separator?: boolean;
   }> = [
     {
-      label: "MP4 Standard",
+      label: t("MP4 Standard"),
       iconName: "bolt",
-      desc: `${projectRes} H.264 - Web & social`,
+      desc: `${projectRes} H.264 - ${t("Web & social")}`,
       type: "mp4",
       recommended: true,
     },
@@ -353,28 +356,28 @@ export const Toolbar: React.FC = () => {
       ? []
       : [
           {
-            label: "4K Standard",
+            label: t("4K Standard"),
             iconName: "film",
             desc: "3840×2160 - YouTube 4K",
             type: "4k" as ExportType,
           },
         ]),
     {
-      label: "1080p High Quality",
+      label: t("1080p High Quality"),
       iconName: "film",
-      desc: "1920×1080 30fps - High bitrate",
+      desc: `1920×1080 30fps - ${t("High bitrate")}`,
       type: "1080p-high",
     },
     {
       label: "1080p 60fps",
       iconName: "film",
-      desc: "1920×1080 - Smooth playback",
+      desc: `1920×1080 - ${t("Smooth playback")}`,
       type: "1080p-60",
     },
     {
-      label: "Audio Only (WAV)",
+      label: t("Audio Only (WAV)"),
       iconName: "music.note",
-      desc: "Uncompressed audio",
+      desc: t("Uncompressed audio"),
       type: "wav",
     },
   ];
@@ -382,16 +385,16 @@ export const Toolbar: React.FC = () => {
   return (
     <header className="h-[60px] flex items-center gap-2 px-2 sm:gap-[18px] sm:px-[18px] bg-bg-1 border-b border-border shrink-0 z-30 relative">
 
-      <div role="group" aria-label="Editing mode" className="flex shrink-0 rounded-lg bg-bg-3 p-1 text-xs">
-        <button type="button" aria-pressed={!aiMode} className={`rounded-md px-3 py-1.5 ${!aiMode ? "bg-bg-1 text-fg" : "text-fg-muted"}`} onClick={() => useUIStore.getState().setPanelVisible("agentChat", false)}>Manual</button>
-        <button type="button" aria-pressed={aiMode} className={`rounded-md px-3 py-1.5 ${aiMode ? "bg-accent-soft text-accent" : "text-fg-muted"}`} onClick={() => useUIStore.getState().setPanelVisible("agentChat", true)}>AI editing</button>
+      <div role="group" aria-label={t("Editing mode")} className="flex shrink-0 rounded-lg bg-bg-3 p-1 text-xs">
+        <button type="button" aria-pressed={!aiMode} className={`rounded-md px-3 py-1.5 ${!aiMode ? "bg-bg-1 text-fg" : "text-fg-muted"}`} onClick={() => useUIStore.getState().setPanelVisible("agentChat", false)}>{t("Manual")}</button>
+        <button type="button" aria-pressed={aiMode} className={`rounded-md px-3 py-1.5 ${aiMode ? "bg-accent-soft text-accent" : "text-fg-muted"}`} onClick={() => useUIStore.getState().setPanelVisible("agentChat", true)}>{t("AI editing")}</button>
       </div>
 
       {/* ─── Center: project name ─────────────────────────────── */}
       <div className="flex flex-1 min-w-0 items-center justify-center gap-1.5">
         <div className="hidden sm:block min-w-0">
         <ToolcraftTextInputControl
-          label="Project name"
+          label={t("Project name")}
           isLabelHidden
           value={projectNameDraft}
           onChange={setProjectNameDraft}
@@ -412,7 +415,8 @@ export const Toolbar: React.FC = () => {
       </div>
 
       {/* ─── Right: export only ───────────────────────────────── */}
-      <div className="flex items-center justify-end shrink-0">
+      <div className="flex items-center justify-end gap-2 shrink-0">
+        <LanguageSwitcher className="hidden sm:inline-flex" />
         {/* Export */}
         {exportState.isExporting ? (
           <button
@@ -440,7 +444,7 @@ export const Toolbar: React.FC = () => {
             className="flex items-center gap-1.5 rounded-[8px] bg-bg-3 px-[18px] py-[9px] text-[13px] font-semibold text-fg-2"
           >
             <Icon name="checkmark" size={13} ariaHidden />
-            Saved!
+            {t("Saved!")}
           </button>
         ) : (
           <div className="flex items-stretch">
@@ -448,17 +452,17 @@ export const Toolbar: React.FC = () => {
               type="button"
               onClick={openExportDialog}
               disabled={!hasTimelineContent}
-              title={hasTimelineContent ? "Choose export settings" : "Add media or text to the timeline to export"}
+              title={hasTimelineContent ? t("Choose export settings") : t("Add media or text to the timeline to export")}
               className="rounded-l-[8px] rounded-r-none bg-accent px-[18px] py-[9px] text-[13px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Export
+              {t("Export")}
             </button>
             <DropdownMenu
               isMenuOpen={isExportOpen}
               onOpenChange={setIsExportOpen}
               hasChevron={false}
               button={{
-                label: "Export options",
+                label: t("Export options"),
                 variant: "primary",
                 size: "sm",
                 isIconOnly: true,
@@ -506,7 +510,7 @@ export const Toolbar: React.FC = () => {
                           </Text>
                           {option.recommended && (
                             <Text type="supporting" className="rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-accent">
-                              Best match
+                              {t("Best match")}
                             </Text>
                           )}
                         </div>
@@ -518,7 +522,7 @@ export const Toolbar: React.FC = () => {
                           </Text>
                           {exportEstimates.get(option.type) && (
                             <Text type="supporting" color="secondary" display="block" className="text-[10px]">
-                              Est. {exportEstimates.get(option.type)?.formatted}
+                              {t("Est.")} {exportEstimates.get(option.type)?.formatted}
                             </Text>
                           )}
                         </div>
@@ -532,15 +536,15 @@ export const Toolbar: React.FC = () => {
                 <div className="my-1 border-t border-border" />
                 <DropdownMenuItem
                   icon={<Settings size={18} aria-hidden />}
-                  label="Custom export..."
-                  description="Full settings with AI upscaling"
+                  label={t("Custom export...")}
+                  description={t("Full settings with AI upscaling")}
                   endContent={<MoreHorizontal size={14} className="text-fg-muted" aria-hidden />}
                   onClick={openExportDialog}
                 />
                 <DropdownMenuItem
                   icon={<Video size={18} aria-hidden />}
-                  label="Compress video..."
-                  description="Shrink any video to a target size"
+                  label={t("Compress video...")}
+                  description={t("Shrink any video to a target size")}
                   onClick={() => setIsCompressOpen(true)}
                 />
               </div>
@@ -588,10 +592,10 @@ export const Toolbar: React.FC = () => {
           <div className="fixed top-topbar right-0 bottom-0 w-80 bg-bg-1 border-l border-border z-50 shadow-lg animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between p-3 border-b border-border">
               <Text type="body" weight="bold" className="text-sm text-fg">
-                Action history
+                {t("Action history")}
               </Text>
               <ToolcraftIconButton
-                label="Close action history"
+                label={t("Close action history")}
                 icon={<X size={14} aria-hidden />}
                 size="sm"
                 variant="ghost"

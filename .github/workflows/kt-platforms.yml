@@ -1,0 +1,125 @@
+name: KT Platforms
+
+# Builds KT ตัดต่อ for every supported platform and launches each desktop build
+# in KT_SMOKE_TEST mode (loads the UI, switches TH/EN, exits 0 on success).
+on:
+  push:
+    branches: ["main", "kt/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web (typecheck, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:wasm
+      - run: pnpm --filter @openreel/web typecheck
+      - run: pnpm --filter @openreel/web exec vitest run
+      - run: pnpm --filter @openreel/web exec vite build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kt-web
+          path: apps/web/dist
+
+  desktop:
+    name: Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac dmg --arm64
+            exe: release/mac-arm64/KT Tadtor.app/Contents/MacOS/KT Tadtor
+          - os: windows-latest
+            target: --win nsis --x64
+            exe: release/win-unpacked/KT Tadtor.exe
+          - os: ubuntu-latest
+            target: --linux AppImage --x64
+            exe: ""
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+        working-directory: .
+      - run: pnpm build:wasm
+        working-directory: .
+      - run: pnpm --filter @openreel/desktop typecheck
+        working-directory: .
+      - run: pnpm exec vitest run
+      - run: pnpm run fetch:ffmpeg
+      - run: pnpm run build
+      - run: pnpm exec electron-builder ${{ matrix.target }} --publish never
+      - name: Smoke test macOS (launch, render, TH/EN switch)
+        if: runner.os == 'macOS'
+        env:
+          KT_SMOKE_TEST: "1"
+          KT_SMOKE_OUT: smoke.log
+        run: |
+          "${{ matrix.exe }}" || true
+          cat smoke.log
+          grep -q '"ok":true' smoke.log
+      - name: Smoke test Windows (launch, render, TH/EN switch)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          KT_SMOKE_TEST: "1"
+        run: |
+          $env:KT_SMOKE_OUT = Join-Path $PWD "smoke.log"
+          $p = Start-Process -FilePath "${{ matrix.exe }}" -Wait -PassThru
+          Get-Content smoke.log
+          if ($p.ExitCode -ne 0 -or -not (Select-String -Path smoke.log -Pattern '"ok":true' -Quiet)) { exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kt-desktop-${{ matrix.os }}
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.AppImage
+          if-no-files-found: error
+
+  android:
+    name: Android (APK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:wasm
+      - run: pnpm --filter @kt/android apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kt-android-apk
+          path: apps/kt-android/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

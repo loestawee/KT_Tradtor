@@ -1,6 +1,6 @@
 {
-  "name": "OpenReel",
-  "short_name": "OpenReel",
+  "name": "KT ตัดต่อ",
+  "short_name": "KT ตัดต่อ",
   "description": "Professional browser-based video, audio, and photo editing application",
   "start_url": "/",
   "display": "standalone",

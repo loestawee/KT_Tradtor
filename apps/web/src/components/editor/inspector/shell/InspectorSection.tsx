@@ -1,3 +1,4 @@
+import { useT } from "../../../../i18n";
 import React from "react";
 import { ToolcraftPanelSection } from "@openreel/ui";
 import { useInspectorNavigationStore } from "../../../../stores/inspector-navigation-store";
@@ -16,6 +17,7 @@ export const InspectorSection: React.FC<InspectorSectionProps> = ({
   sectionId,
   children,
 }) => {
+  const t = useT();
   const [isCollapsed, setIsCollapsed] = React.useState(!defaultOpen);
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const request = useInspectorNavigationStore((state) =>
@@ -38,7 +40,7 @@ export const InspectorSection: React.FC<InspectorSectionProps> = ({
   return (
     <div ref={sectionRef}>
       <ToolcraftPanelSection
-        title={title}
+        title={t(title)}
         collapsed={isCollapsed}
         onCollapsedChange={setIsCollapsed}
         sectionId={sectionId}

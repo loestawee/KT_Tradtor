@@ -1,3 +1,4 @@
+import { useT } from "../../i18n";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Captions, Shuffle } from "@/icons/lucide-compat";
@@ -108,16 +109,19 @@ const rgbaFromHex = (hex: string, alpha: string): string => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-const EmptyState: React.FC = () => (
+const EmptyState: React.FC = () => {
+  const t = useT();
+  return (
   <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
     <Text type="body" weight="semibold" display="block" className="mb-1.5 text-sm text-fg">
-      No selection
+      {t("No selection")}
     </Text>
     <Text type="supporting" display="block" className="text-xs text-fg-muted">
-      Select a clip to view its properties
+      {t("Select a clip to view its properties")}
     </Text>
   </div>
-);
+  );
+};
 
 export const InspectorPanel: React.FC = () => {
   // Stores

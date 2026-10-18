@@ -33,8 +33,14 @@ function runCheckWhenLoaded(win: BrowserWindow, run: () => void): void {
 // background, and install on the next quit. The quit path runs the unsaved-
 // changes guard first (autoInstallOnAppQuit fires on the normal quit sequence),
 // so updates never bypass the save prompt. No-op in dev (no published feed).
+// KT: builds are not code-signed yet. electron-updater on unsigned Windows
+// builds only checks the sha512 published next to the installer, and ad-hoc
+// signed macOS builds cannot pass Squirrel.Mac's signature check — so updates
+// stay off until releases are signed (Authenticode + Developer ID).
+const KT_UPDATES_ENABLED = false;
+
 export function initAutoUpdater(): void {
-  if (!app.isPackaged) return;
+  if (!app.isPackaged || !KT_UPDATES_ENABLED) return;
 
   // Notify → (user-consented) download → install on quit. The download is not
   // automatic; the renderer triggers it after telling the user an update

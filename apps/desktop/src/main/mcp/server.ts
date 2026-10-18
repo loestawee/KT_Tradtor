@@ -1,6 +1,6 @@
 import { app } from "electron";
 import { randomBytes } from "node:crypto";
-import { mkdirSync, writeFileSync, rmSync, chmodSync } from "node:fs";
+import { mkdirSync, writeFileSync, rmSync, chmodSync, renameSync } from "node:fs";
 import { request as httpRequest } from "node:http";
 import path from "node:path";
 import { startHttpServer, type RunningHttpServer } from "./http-server";
@@ -50,14 +50,18 @@ function endpointUrl(port: number): string {
 
 function writeEndpointFile(endpoint: McpEndpoint): void {
   const file = endpointFilePath();
-  mkdirSync(path.dirname(file), { recursive: true });
-  writeFileSync(file, JSON.stringify(endpoint, null, 2), { mode: 0o600 });
-  // mode in writeFileSync only applies on create; enforce 0600 if it pre-existed.
+  const dir = path.dirname(file);
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
   try {
-    chmodSync(file, 0o600);
+    chmodSync(dir, 0o700);
   } catch {
-    // best-effort
+    // best-effort (e.g. a shared override directory)
   }
+  // Write a fresh 0600 file (wx never follows an existing symlink) and rename it
+  // into place, so the token is never readable through looser permissions.
+  const tmp = `${file}.${process.pid}.${randomBytes(4).toString("hex")}.tmp`;
+  writeFileSync(tmp, JSON.stringify(endpoint, null, 2), { mode: 0o600, flag: "wx" });
+  renameSync(tmp, file);
 }
 
 function removeEndpointFile(): void {

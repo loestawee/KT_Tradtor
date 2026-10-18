@@ -134,7 +134,9 @@ export const useSettingsStore = create<SettingsState>()(
         favoriteModels: [],
         configuredServices: [],
 
-        mcpAutoAllowTrustedLocal: true,
+        // KT: destructive/expensive MCP tools ask first; one-click AI setup makes
+        // agents easy to connect, so auto-allow is opt-in.
+        mcpAutoAllowTrustedLocal: false,
         agentAutoConfirm: false,
         agentDryRun: false,
 
@@ -231,10 +233,12 @@ export const useSettingsStore = create<SettingsState>()(
       }),
       {
         name: "openreel-settings",
-        version: 7,
+        version: 8,
         migrate: (persisted, version) => {
           const next = (persisted ?? {}) as Record<string, unknown>;
           if (version < 2) next.mcpAutoAllowTrustedLocal = true;
+          // KT: reset the inherited "auto-allow" default once; users can re-enable it.
+          if (version < 8) next.mcpAutoAllowTrustedLocal = false;
           if (version < 3 && (!next.llmModel || next.llmModel === "gpt-4o")) {
             next.llmModel = "gpt-5.6-sol";
           }

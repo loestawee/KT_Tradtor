@@ -28,7 +28,10 @@ export interface CachedExport {
 }
 
 export interface DeliveryActions {
-  /** Copies the file into Movies/KT Tadtor (or Music/ for audio). Throws on failure. */
+  /**
+   * Copies the file into Movies/KT Tadtor (or Music/ for audio). Throws on failure.
+   * On success the cached copy is deleted, so call share() first if you want both.
+   */
   saveToGallery: () => Promise<{ relativePath: string }>;
   /** Opens the Android share sheet. Rejects if the user dismisses it. */
   share: () => Promise<void>;

@@ -12,6 +12,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: these jobs only read the repo and upload artifacts.
+permissions:
+  contents: read
+
 jobs:
   web:
     name: Web (typecheck, test, build)

@@ -64,13 +64,19 @@ export function setupAgent(
     if (!claude) {
       return { ok: false, message: "ไม่พบคำสั่ง claude — ให้รันคำสั่งนี้ใน Terminal เอง", manual };
     }
-    const json = JSON.stringify(jsonServerEntry(launcher, { withType: true }));
     const shell = process.platform === "win32";
+    // On Windows `claude` is a .cmd shim that needs a shell, and cmd.exe would
+    // mangle a JSON argument; there we use `mcp add` with each value quoted.
+    const quote = (value: string) => (shell ? `"${value}"` : value);
+    const args = shell
+      ? [
+          "mcp", "add", "--scope", "user",
+          ...Object.entries(launcher.env ?? {}).flatMap(([k, v]) => ["-e", quote(`${k}=${v}`)]),
+          SERVER_NAME, "--", quote(launcher.command), ...launcher.args.map(quote),
+        ]
+      : ["mcp", "add-json", "--scope", "user", SERVER_NAME, JSON.stringify(jsonServerEntry(launcher, { withType: true }))];
     spawnSync(claude, ["mcp", "remove", "--scope", "user", SERVER_NAME], { stdio: "ignore", shell });
-    const res = spawnSync(claude, ["mcp", "add-json", "--scope", "user", SERVER_NAME, json], {
-      encoding: "utf8",
-      shell,
-    });
+    const res = spawnSync(claude, args, { encoding: "utf8", shell });
     if (res.error || res.status !== 0) {
       return {
         ok: false,

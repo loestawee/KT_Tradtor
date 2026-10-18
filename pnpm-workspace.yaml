@@ -21,3 +21,12 @@ allowBuilds:
   protobufjs: false
   sharp: false
   workerd: false
+# KT security: force patched versions of vulnerable transitive deps
+# (pnpm audit 2026-10-18). Same major versions as upstream resolved.
+overrides:
+  "protobufjs@<7.6.1": "^7.6.1"
+  "js-yaml@>=4 <4.3.2": "^4.3.2"
+  "lodash-es@<4.17.24": "^4.17.24"
+  "builder-util-runtime@<9.7.0": "^9.7.0"
+  "nanoid@>=5 <5.1.16": "^5.1.16"
+  "hono@<4.12.25": "^4.12.25"

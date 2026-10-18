@@ -14,6 +14,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -21,6 +22,10 @@ import java.io.OutputStream;
  * Copies a finished export from the app cache into the shared gallery
  * (Movies/ or Music/ under "KT Tadtor") through MediaStore, so no storage
  * permission is needed on Android 10+.
+ *
+ * Security: the source path comes from JavaScript, so it is confined to
+ * cache/exports/ — otherwise any script in the WebView could publish
+ * app-private files (cookies, databases) to the world-readable gallery.
  */
 @CapacitorPlugin(name = "KtMedia")
 public class KtMediaPlugin extends Plugin {
@@ -29,15 +34,31 @@ public class KtMediaPlugin extends Plugin {
     @PluginMethod
     public void saveToGallery(PluginCall call) {
         String path = call.getString("path");
-        String filename = call.getString("filename");
+        String filename = sanitizeFilename(call.getString("filename"));
         String mime = call.getString("mime", "video/mp4");
         if (path == null || filename == null) {
             call.reject("path and filename are required");
             return;
         }
-        File source = new File(Uri.parse(path).getPath());
+        if (mime == null || !(mime.startsWith("video/") || mime.startsWith("audio/"))) {
+            call.reject("Only video or audio exports can be saved to the gallery");
+            return;
+        }
+
+        File source;
+        try {
+            File exportsDir = new File(getContext().getCacheDir(), "exports").getCanonicalFile();
+            source = new File(Uri.parse(path).getPath()).getCanonicalFile();
+            if (!source.getPath().startsWith(exportsDir.getPath() + File.separator)) {
+                call.reject("Export file must be inside the app's export cache");
+                return;
+            }
+        } catch (IOException | NullPointerException e) {
+            call.reject("Invalid export path");
+            return;
+        }
         if (!source.isFile()) {
-            call.reject("Export file not found: " + source);
+            call.reject("Export file not found");
             return;
         }
 
@@ -67,10 +88,13 @@ public class KtMediaPlugin extends Plugin {
             int n;
             while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
         } catch (Exception e) {
+            // Keep the cached file: the JS side may fall back to the share sheet.
             resolver.delete(item, null, null);
             call.reject("Saving to gallery failed: " + e.getMessage(), e);
             return;
         }
+        //noinspection ResultOfMethodCallIgnored
+        source.delete();
 
         values.clear();
         values.put(MediaStore.MediaColumns.IS_PENDING, 0);
@@ -80,5 +104,13 @@ public class KtMediaPlugin extends Plugin {
         ret.put("uri", item.toString());
         ret.put("relativePath", dir + "/" + filename);
         call.resolve(ret);
+    }
+
+    /** Keeps only a plain file name (no directories, no control characters). */
+    private static String sanitizeFilename(String raw) {
+        if (raw == null) return null;
+        String name = raw.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").replaceAll("^\\.+", "").trim();
+        if (name.isEmpty()) return null;
+        return name.length() > 120 ? name.substring(name.length() - 120) : name;
     }
 }

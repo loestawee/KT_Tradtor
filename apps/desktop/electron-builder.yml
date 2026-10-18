@@ -75,6 +75,8 @@ win:
     - target: nsis
       arch: [x64]
 linux:
+  # electron-builder 26 rejects the scoped package name as a Linux binary name.
+  executableName: kt-tadtor
   icon: build/icon.png
   target:
     - target: AppImage

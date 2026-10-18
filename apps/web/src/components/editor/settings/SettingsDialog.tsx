@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Settings, Key, Plug, Bot } from "@/icons/lucide-compat";
+import { Settings, Key, Plug, Bot, Puzzle } from "@/icons/lucide-compat";
 import { Tabs, TabsList, TabsTrigger } from "@openreel/ui";
 import { ToolcraftDialog as Dialog, ToolcraftDialogHeader as DialogHeader } from "@openreel/ui";
 import { ToolcraftLayout as Layout, ToolcraftLayoutContent as LayoutContent } from "@openreel/ui";
@@ -8,6 +8,8 @@ import { GeneralPanel } from "./GeneralPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
 import { McpPanel } from "./McpPanel";
 import { AISettingsPanel } from "./AISettingsPanel";
+import { PluginsPanel } from "./PluginsPanel";
+import { useT } from "../../../i18n";
 
 const isDesktop =
   typeof window !== "undefined" && window.openreel?.platform === "desktop";
@@ -16,6 +18,7 @@ const TABS: readonly { id: SettingsTab; label: string; icon: typeof Settings }[]
   { id: "general", label: "General", icon: Settings },
   { id: "ai-editor", label: "AI Editor", icon: Bot },
   { id: "api-keys", label: "API Keys", icon: Key },
+  { id: "plugins", label: "Plugins", icon: Puzzle },
   ...(isDesktop
     ? [{ id: "mcp" as const, label: "MCP", icon: Plug }]
     : []),
@@ -23,6 +26,7 @@ const TABS: readonly { id: SettingsTab; label: string; icon: typeof Settings }[]
 
 export const SettingsDialog: React.FC = () => {
   const { settingsOpen, settingsTab, closeSettings, openSettings } = useSettingsStore();
+  const t = useT();
 
   const setTab = useCallback((tab: SettingsTab) => {
     openSettings(tab);
@@ -38,8 +42,8 @@ export const SettingsDialog: React.FC = () => {
       <Layout
         header={
           <DialogHeader
-            title="Settings"
-            subtitle="Configure preferences and manage API keys for external services."
+            title={t("Settings")}
+            subtitle={t("Configure preferences and manage API keys for external services.")}
             onOpenChange={(open) => !open && closeSettings()}
             startContent={<Settings size={18} className="text-primary" aria-hidden />}
           />
@@ -72,7 +76,7 @@ export const SettingsDialog: React.FC = () => {
                       id={`settings-tab-${tab.id}`}
                     >
                       <Icon size={14} aria-hidden />
-                      <span className="truncate">{tab.label}</span>
+                      <span className="truncate">{t(tab.label)}</span>
                     </TabsTrigger>
                   );
                 })}
@@ -89,6 +93,7 @@ export const SettingsDialog: React.FC = () => {
               {settingsTab === "ai-editor" && <AISettingsPanel />}
               {settingsTab === "api-keys" && <ApiKeysPanel />}
               {settingsTab === "mcp" && <McpPanel />}
+              {settingsTab === "plugins" && <PluginsPanel />}
             </div>
           </LayoutContent>
         }

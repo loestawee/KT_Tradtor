@@ -10,6 +10,8 @@ import { registerServiceWorker } from "./services/service-worker";
 import { initCustomFonts } from "./components/editor/inspector/font-options";
 import { setEncoderBackendFactory } from "@openreel/core";
 import { NativeFFmpegBackend } from "./services/native-ffmpeg-backend";
+// Rehydrate installed effect plugins before any project renders.
+import "./stores/plugin-store";
 
 const DesktopApp = React.lazy(() =>
   import("./desktop/DesktopApp").then((module) => ({

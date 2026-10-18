@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useSyncExternalStore } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -25,6 +25,9 @@ import {
   getMotionShaderDef,
   getMotionShaderEffectDefs,
   defaultMotionShaderParams,
+  getPluginShadersVersion,
+  isPluginShaderId,
+  subscribePluginShaders,
 } from "@openreel/core";
 import { ColorSelector } from "../../../motion/components/primitives";
 import { ShaderPreviewBrowser } from "../../shaders/ShaderPreviewBrowser";
@@ -654,7 +657,10 @@ const EffectTypeSelector: React.FC<{
     "effects",
   );
   const [query, setQuery] = React.useState("");
-  const shaderDefs = useMemo(() => getMotionShaderEffectDefs(), []);
+  // Re-read the library when effect plugins are installed/enabled/removed.
+  const pluginVersion = useSyncExternalStore(subscribePluginShaders, getPluginShadersVersion);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const shaderDefs = useMemo(() => getMotionShaderEffectDefs(), [pluginVersion]);
   const visibleEffects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return EDITOR_EFFECT_PREVIEWS;
@@ -820,6 +826,17 @@ export const VideoEffectsSection: React.FC<VideoEffectsSectionProps> = ({
     (shaderId: string) => {
       const def = getMotionShaderDef(shaderId);
       if (!def || def.category !== "effect") return;
+      // KT: copy plugin shaders into the project so the clip still renders
+      // when the plugin is disabled/removed or the file is opened elsewhere.
+      const { project, executeAction } = useProjectStore.getState();
+      if (isPluginShaderId(shaderId) && !project.generatedShaders?.some((s) => s.id === shaderId)) {
+        void executeAction({
+          type: "project/registerGeneratedShader",
+          id: crypto.randomUUID(),
+          timestamp: Date.now(),
+          params: { def },
+        });
+      }
       addVideoEffect(clipId, "shader", {
         shaderId,
         ...defaultMotionShaderParams(def),

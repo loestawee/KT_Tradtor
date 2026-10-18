@@ -4,6 +4,17 @@ import { FILL_SHADERS } from "./fill-shaders";
 import { TEXT_SHADERS } from "./text-shaders";
 import { PAPER_SHADER_DEFS } from "./paper-shaders";
 import { generatedShaderById, listGeneratedMotionShaders } from "./registry";
+import { listPluginShaders, pluginShaderById } from "./plugin-registry";
+export {
+  KT_PLUGIN_FORMAT,
+  PLUGIN_LIMITS,
+  parsePluginPackage,
+  pluginShaderId,
+  type KtPluginManifest,
+  type KtPluginPackage,
+  type PluginParseResult,
+  type ShaderSourceValidator,
+} from "./plugin-package";
 
 export type {
   MotionShaderParamType,
@@ -24,6 +35,16 @@ export {
   isBuiltinMotionShaderId,
 } from "./registry";
 export { registerProjectGeneratedShaders } from "./project-shaders";
+export {
+  setPluginShaders,
+  removePluginShaders,
+  clearPluginShaders,
+  listPluginShaders,
+  pluginShaderById,
+  isPluginShaderId,
+  getPluginShadersVersion,
+  subscribePluginShaders,
+} from "./plugin-registry";
 export { PAPER_SHADER_DEFS, PAPER_VERTEX_SHADER } from "./paper-shaders";
 
 export const MOTION_SHADER_LIBRARY: readonly MotionShaderDef[] = [
@@ -34,11 +55,16 @@ export const MOTION_SHADER_LIBRARY: readonly MotionShaderDef[] = [
 ];
 
 function generatedByCategory(category: MotionShaderCategory): readonly MotionShaderDef[] {
-  return listGeneratedMotionShaders().filter((def) => def.category === category);
+  // A plugin shader already copied into the project shows up once, as the plugin's.
+  const generated = listGeneratedMotionShaders().filter(
+    (def) => def.category === category && !pluginShaderById(def.id),
+  );
+  return [...generated, ...listPluginShaders().filter((def) => def.category === category)];
 }
 
+// Lookup order: built-in → project (travels with the file) → installed plugins.
 export function getMotionShaderDef(id: string): MotionShaderDef | undefined {
-  return MOTION_SHADER_LIBRARY.find((def) => def.id === id) ?? generatedShaderById(id);
+  return MOTION_SHADER_LIBRARY.find((def) => def.id === id) ?? generatedShaderById(id) ?? pluginShaderById(id);
 }
 
 export function getMotionShaderEffectDefs(): readonly MotionShaderDef[] {

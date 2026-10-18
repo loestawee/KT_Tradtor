@@ -1,0 +1,90 @@
+{
+  "format": "kt-plugin/1",
+  "id": "kt.film-pack",
+  "name": "KT Film Pack",
+  "version": "1.0.0",
+  "author": "KT ตัดต่อ",
+  "description": "ตัวอย่างปลั๊กอิน: โทนหนังส้ม-ฟ้า, ฟิล์มซีด และ VHS",
+  "shaders": [
+    {
+      "id": "teal-orange",
+      "name": "Teal & Orange",
+      "category": "effect",
+      "glsl": "#version 300 es\nprecision highp float;\nin vec2 vUv;\nuniform sampler2D u_input;\nuniform vec2 u_resolution;\nuniform float u_time;\nuniform float u_amount;\nuniform float u_contrast;\nout vec4 fragColor;\n\nvoid main() {\n  vec4 src = texture(u_input, vUv);\n  float luma = dot(src.rgb, vec3(0.2126, 0.7152, 0.0722));\n  vec3 shadows = vec3(0.0, 0.33, 0.38);\n  vec3 highlights = vec3(1.0, 0.62, 0.32);\n  vec3 graded = mix(shadows, highlights, smoothstep(0.05, 0.95, luma));\n  vec3 toned = mix(src.rgb, src.rgb * 0.55 + graded * 0.6, clamp(u_amount, 0.0, 1.0));\n  toned = (toned - 0.5) * max(u_contrast, 0.0) + 0.5;\n  fragColor = vec4(clamp(toned, 0.0, 1.0), src.a);\n}\n",
+      "params": [
+        {
+          "name": "amount",
+          "label": "Amount",
+          "min": 0,
+          "max": 1,
+          "default": 0.7,
+          "step": 0.01
+        },
+        {
+          "name": "contrast",
+          "label": "Contrast",
+          "min": 0.5,
+          "max": 1.6,
+          "default": 1.1,
+          "step": 0.01
+        }
+      ]
+    },
+    {
+      "id": "film-fade",
+      "name": "Film Fade",
+      "category": "effect",
+      "glsl": "#version 300 es\nprecision highp float;\nin vec2 vUv;\nuniform sampler2D u_input;\nuniform vec2 u_resolution;\nuniform float u_time;\nuniform float u_fade;\nuniform float u_warmth;\nuniform float u_grain;\nout vec4 fragColor;\n\nfloat hash(vec2 p) {\n  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);\n}\n\nvoid main() {\n  vec4 src = texture(u_input, vUv);\n  vec3 c = mix(src.rgb, vec3(0.12) + src.rgb * 0.82, clamp(u_fade, 0.0, 1.0));\n  c += vec3(0.06, 0.02, -0.05) * u_warmth;\n  float n = hash(floor(vUv * u_resolution) + fract(u_time) * 97.0) - 0.5;\n  c += n * u_grain * 0.25;\n  vec2 d = vUv - 0.5;\n  c *= 1.0 - dot(d, d) * 0.9;\n  fragColor = vec4(clamp(c, 0.0, 1.0), src.a);\n}\n",
+      "params": [
+        {
+          "name": "fade",
+          "label": "Fade",
+          "min": 0,
+          "max": 1,
+          "default": 0.45,
+          "step": 0.01
+        },
+        {
+          "name": "warmth",
+          "label": "Warmth",
+          "min": -1,
+          "max": 1,
+          "default": 0.4,
+          "step": 0.01
+        },
+        {
+          "name": "grain",
+          "label": "Grain",
+          "min": 0,
+          "max": 1,
+          "default": 0.3,
+          "step": 0.01
+        }
+      ]
+    },
+    {
+      "id": "vhs",
+      "name": "VHS",
+      "category": "effect",
+      "glsl": "#version 300 es\nprecision highp float;\nin vec2 vUv;\nuniform sampler2D u_input;\nuniform vec2 u_resolution;\nuniform float u_time;\nuniform float u_shift;\nuniform float u_lines;\nout vec4 fragColor;\n\nvoid main() {\n  float px = u_shift / max(u_resolution.x, 1.0);\n  float wobble = sin(vUv.y * 40.0 + u_time * 6.0) * px * 0.5;\n  float r = texture(u_input, vUv + vec2(px + wobble, 0.0)).r;\n  vec4 g = texture(u_input, vUv);\n  float b = texture(u_input, vUv - vec2(px - wobble, 0.0)).b;\n  float scan = 0.5 + 0.5 * sin(vUv.y * u_resolution.y * 3.14159);\n  vec3 c = vec3(r, g.g, b) * (1.0 - u_lines * 0.35 * scan);\n  fragColor = vec4(clamp(c, 0.0, 1.0), g.a);\n}\n",
+      "params": [
+        {
+          "name": "shift",
+          "label": "Color shift (px)",
+          "min": 0,
+          "max": 12,
+          "default": 3,
+          "step": 0.5
+        },
+        {
+          "name": "lines",
+          "label": "Scanlines",
+          "min": 0,
+          "max": 1,
+          "default": 0.4,
+          "step": 0.01
+        }
+      ]
+    }
+  ]
+}

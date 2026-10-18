@@ -180,6 +180,30 @@ export const th: Record<string, string> = {
   "Add this to your MCP client config (Claude Desktop, Cursor, Cline). The shim connects to the running app automatically.":
     "คัดลอกไปใส่ในไฟล์ตั้งค่า MCP ของโปรแกรม AI (Claude Desktop, Cursor, Cline) ตัวเชื่อมจะต่อกับแอปที่เปิดอยู่ให้อัตโนมัติ",
 
+  // ── Settings / plugins ────────────────────────────────────
+  General: "ทั่วไป",
+  "API Keys": "คีย์ API",
+  MCP: "MCP",
+  Plugins: "ปลั๊กอิน",
+  "Configure preferences and manage API keys for external services.": "ปรับการตั้งค่าและจัดการคีย์ API ของบริการภายนอก",
+  "Effect & filter plugins": "ปลั๊กอินเอฟเฟกต์และฟิลเตอร์",
+  "Add new effects from .ktfx.json files. Plugins contain GPU shaders only (no scripts), are checked before install, and appear under Effects → Shaders on any clip.":
+    "เพิ่มเอฟเฟกต์ใหม่จากไฟล์ .ktfx.json ปลั๊กอินมีแค่ GPU shader (ไม่มีสคริปต์) ถูกตรวจก่อนติดตั้ง และจะขึ้นในเอฟเฟกต์ → Shaders ของทุกคลิป",
+  "Install from file…": "ติดตั้งจากไฟล์…",
+  "Install sample: KT Film Pack": "ติดตั้งตัวอย่าง: KT Film Pack",
+  "Plugin file": "ไฟล์ปลั๊กอิน",
+  "No plugins installed yet": "ยังไม่ได้ติดตั้งปลั๊กอิน",
+  "{n} effects": "{n} เอฟเฟกต์",
+  "Enable {name}": "เปิดใช้ {name}",
+  "Remove plugin": "ลบปลั๊กอิน",
+  "Plugin installed": "ติดตั้งปลั๊กอินแล้ว",
+  "Plugin updated": "อัปเดตปลั๊กอินแล้ว",
+  "Plugin not installed": "ติดตั้งปลั๊กอินไม่สำเร็จ",
+  "{name} — {n} effects ready in the Shaders tab": "{name} — มี {n} เอฟเฟกต์ในแท็บ Shaders แล้ว",
+  "The file is larger than 1 MB": "ไฟล์ใหญ่เกิน 1 MB",
+  "Clips that use a plugin effect keep a copy of it inside the project, so they still render after the plugin is disabled or on another device.":
+    "คลิปที่ใช้เอฟเฟกต์จากปลั๊กอินจะเก็บสำเนาไว้ในโปรเจกต์ จึงยังแสดงผลได้แม้ปิดปลั๊กอินหรือเปิดบนเครื่องอื่น",
+
   // ── Recovery dialog ───────────────────────────────────────
   "Recover Your Work": "กู้งานที่ค้างไว้",
   "We found an unsaved project": "พบโปรเจกต์ที่ยังไม่ได้บันทึก",

@@ -16,13 +16,14 @@
 | Workflow ของ upstream ใน fork สาธารณะ | ทุก job รันเฉพาะใน `Augani/openreel-video` | `.github/workflows/*` |
 | CI สิทธิ์ไม่ระบุ | `permissions: contents: read` | `kt-platforms.yml` |
 | Cloudflare → origin ไม่เข้ารหัส | Configuration Rule **SSL = Full (strict)** เฉพาะ `kt-tadtor.officebk.co`; origin :80 ตอบแค่ ACME + redirect | Cloudflare (บัญชี Dosod.dev) + `deploy/kt-web/*.conf` |
+| Motion expressions รัน JavaScript จากไฟล์โปรเจกต์ได้ (`new Function`) | เปลี่ยนเป็นตัวแปลภาษาในกล่อง (sandbox) เขียนเอง: เข้าถึงได้แค่ค่าที่แอปให้, เรียกได้แค่ฟังก์ชันของแอป/`Math`, ห้าม `constructor`/`__proto__`/globals, จำกัดจำนวนขั้น (กัน loop ไม่รู้จบ) — ไวยากรณ์เดิม (`value + 10`, `const a = …; return a`, `thisComp.layer(…)`, `wiggle`, `loopOut`) ใช้ได้เหมือนเดิม | `packages/core/src/motion/safe-expression.ts` |
 | ไม่มี CSP / Permissions-Policy | ผ่านรอบ Report-Only แล้วบังคับใช้จริง ทดสอบนำเข้า/ส่งออก/worker บน production แล้ว | `deploy/kt-web/kt-tadtor-headers.inc` |
 
 ## ยังค้าง / ยอมรับความเสี่ยง
 
 - **ยังไม่ได้ code-sign** (Windows Authenticode, Apple Developer ID) — เปิด auto-update ได้เมื่อ sign แล้ว
 - `sharp` < 0.35 (high) มากับ `@huggingface/transformers` ใช้ฝั่ง Node เท่านั้น
-- CSP ยังต้องมี `'unsafe-eval'` (motion expressions ใช้ `new Function`) และ `connect-src https:` (AI แบบ OpenAI-compatible ต่อ endpoint ใดก็ได้)
+- CSP ไม่ต้องใช้ `'unsafe-eval'` แล้ว (ต้อง deploy พร้อม build ที่มี safe-expression) แต่ยังต้องมี `connect-src https:` เพราะ AI แบบ OpenAI-compatible ต่อ endpoint ใดก็ได้
 - Electron fuse `RunAsNode` เปิดอยู่เพราะ CLI `kt-tadtor` ใช้ `ELECTRON_RUN_AS_NODE`
 - โปรเจกต์ใน "ล่าสุด" ที่บันทึกก่อนมี PathGrants ต้องเปิดผ่านหน้าต่างเลือกไฟล์อีกครั้งหนึ่งครั้ง
 

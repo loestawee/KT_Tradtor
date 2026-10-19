@@ -1,3 +1,5 @@
+import { compileSafeExpression } from "../motion/safe-expression";
+
 export interface ExpressionContext {
   time: number;
   value: any;
@@ -42,7 +44,7 @@ export interface ExpressionContext {
 }
 
 export class ExpressionEngine {
-  private cache = new Map<string, Function>();
+  private cache = new Map<string, (context: ExpressionContext) => unknown>();
 
   evaluate(expression: string, context: ExpressionContext): any {
     if (!this.cache.has(expression)) {
@@ -53,18 +55,22 @@ export class ExpressionEngine {
     return fn(context);
   }
 
-  private compile(expression: string): Function {
-    const safeContext = this.createSafeContext();
-
-    try {
-      return new Function(
-        ...Object.keys(safeContext),
-        `return (${expression});`,
-      ).bind(null, ...Object.values(safeContext));
-    } catch (error) {
-      console.error("Expression compilation error:", error);
+  // KT security: evaluated by the sandboxed interpreter, never `new Function`.
+  private compile(expression: string): (context: ExpressionContext) => unknown {
+    const result = compileSafeExpression(expression);
+    if (!result.ok) {
+      console.error("Expression compilation error:", result.error);
       return () => 0;
     }
+    const helpers = this.createSafeContext();
+    return (context) => {
+      try {
+        return result.run({ ...context, ...helpers });
+      } catch (error) {
+        console.error("Expression evaluation error:", error);
+        return 0;
+      }
+    };
   }
 
   private createSafeContext() {

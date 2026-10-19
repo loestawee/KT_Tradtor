@@ -1,4 +1,5 @@
 import { evaluateKeyframesAt } from "../animation/evaluate-keyframes";
+import { compileSafeExpression, type SafeScope } from "./safe-expression";
 import {
   getMotionEffectKeyframeProperty,
   getMotionEffectParameterDescriptor,
@@ -444,7 +445,6 @@ export const MOTION_EXPRESSION_SCOPE_KEYS = [
   "effect",
 ] as const;
 
-type MotionExpressionScopeKey = (typeof MOTION_EXPRESSION_SCOPE_KEYS)[number];
 
 interface MotionLayerHandle {
   readonly index: number;
@@ -508,60 +508,20 @@ export function clearMotionExpressionError(expressionId: string): void {
   motionExpressionErrors.delete(expressionId);
 }
 
-function buildScopeArgs(scope: MotionExpressionScope): readonly unknown[] {
-  return MOTION_EXPRESSION_SCOPE_KEYS.map(
-    (key: MotionExpressionScopeKey) => scope[key],
-  );
-}
-
-interface CompiledMotionExpressionBody {
-  readonly compiled: CompiledMotionExpression | null;
-  readonly syntaxError: SyntaxError | null;
-}
-
-function compileMotionExpressionBody(body: string): CompiledMotionExpressionBody {
-  try {
-    const evaluator = new Function(
-      ...MOTION_EXPRESSION_SCOPE_KEYS,
-      body,
-    ) as (...args: unknown[]) => unknown;
-    return {
-      compiled: (scope) => evaluator(...buildScopeArgs(scope)),
-      syntaxError: null,
-    };
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return { compiled: null, syntaxError: error };
-    }
-    throw error;
-  }
-}
-
-function firstLine(message: string): string {
-  return message.split("\n", 1)[0] ?? message;
-}
-
+// KT security: expressions come from project files, templates and AI tools, so
+// they are untrusted. They are interpreted by the sandboxed evaluator in
+// ./safe-expression (scope-only access, no globals, step-limited) instead of
+// being compiled to real JavaScript with `new Function`.
 function compileMotionExpression(code: string): CompiledMotionExpression | null {
   if (compiledExpressionCache.has(code)) {
     return compiledExpressionCache.get(code) ?? null;
   }
-  const returnForm = compileMotionExpressionBody(`"use strict"; return (${code});`);
-  let compiled = returnForm.compiled;
-  if (!compiled) {
-    const bodyForm = compileMotionExpressionBody(`"use strict"; ${code}`);
-    compiled = bodyForm.compiled;
-    if (!compiled) {
-      const message = firstLine(
-        returnForm.syntaxError?.message ??
-          bodyForm.syntaxError?.message ??
-          "unknown syntax error",
-      );
-      compileErrorCache.set(code, message);
-    }
-  }
-  if (compiled) {
-    compileErrorCache.delete(code);
-  }
+  const result = compileSafeExpression(code);
+  const compiled: CompiledMotionExpression | null = result.ok
+    ? (scope) => result.run(scope as unknown as SafeScope)
+    : null;
+  if (result.ok) compileErrorCache.delete(code);
+  else compileErrorCache.set(code, result.error);
   compiledExpressionCache.set(code, compiled);
   return compiled;
 }
